@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+
+def run_command(cmd, cwd):
+    """Run an external command, printing the command first"""
+    print(cwd + ': ' + ' '.join(cmd))
+    subprocess.check_call(cmd, cwd=cwd)
+
+def download_source(url, cwd):
+    command = ['curl', '-O', url]
+    run_command(command, cwd)
+    return os.path.split(url)[1]
+
+def unpack_source(filename, cwd):
+    if filename.endswith('.tar.bz2'):
+        command = ['tar', 'jxf', filename]
+    else:
+        raise Exception('No rule to unpack ' + str(filename))
+
+    run_command(command, cwd)
+
+def configure_source(source_dir, install_dir, configure_arguments):
+    command = (['./configure',
+                '--prefix=' + os.path.abspath(install_dir)] +
+               configure_arguments)
+    run_command(command, source_dir)
+
+def make_target(cwd, target=None):
+    command = ['make']
+    if target:
+        command.append(target)
+    run_command(command, cwd)
+
+if __name__ == '__main__':
+    build_dir = sys.argv[1]
+    cache_dir = sys.argv[2]
+    env_dir = sys.argv[3]
+
+    config_path = os.path.join(build_dir, 'buildpack_autotools.json')
+    config_json = json.load(open(config_path, 'r'))
+
+    source_url = config_json['url']
+    configure_arguments = config_json['configure_arguments']
+    source_dir = os.path.join(build_dir, config_json['source_dir'])
+    install_dir = os.path.join(build_dir, config_json['install_dir'])
+
+    source_filename = download_source(source_url, build_dir)
+    unpack_source(source_filename, build_dir)
+    configure_source(source_dir, install_dir, configure_arguments)
+    make_target(source_dir, 'install')
+
+    # Clean up
+    os.remove(source_filename)
+    shutil.rmtree(source_dir)
