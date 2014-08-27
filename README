@@ -1,0 +1,16 @@
+Simple buildpack to download source, configure, make, and
+install. Intended for use with the multipack buildpack.
+
+
+Example:
+
+{
+  "url": "http://foo/bar.tar.bz2",
+  "source_dir": "bar",
+
+  "install_dir": "bar_install",
+
+  "configure_arguments": [
+    "--enable-cool-stuff=yes"
+  ]
+}
