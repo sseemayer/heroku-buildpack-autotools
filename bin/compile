@@ -19,6 +19,8 @@ def download_source(url, cwd):
 def unpack_source(filename, cwd):
     if filename.endswith('.tar.bz2'):
         command = ['tar', 'jxf', filename]
+    elif filename.endswith('.tar.xz'):
+        command = ['tar', 'xf', filename]
     else:
         raise Exception('No rule to unpack ' + str(filename))
 
